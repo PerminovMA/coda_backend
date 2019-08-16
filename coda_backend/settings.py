@@ -25,7 +25,7 @@ SECRET_KEY = '&o2rb@g#s)5g&-!4@u2q7tll0%8(ptk@56h(a=ei6jl**8@^ob'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['165.22.197.227', 'codabackend.space']
+ALLOWED_HOSTS = ['165.22.197.227', 'codabackend.space', '127.0.0.1']
 
 
 # Application definition
@@ -103,9 +103,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-RU'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
