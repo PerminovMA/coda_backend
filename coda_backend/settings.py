@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['165.22.197.227', 'codabackend.space', '127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
+    'coda.apps.CodaConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

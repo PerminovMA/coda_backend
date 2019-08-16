@@ -4,3 +4,4 @@ wsgi.py
 xv
 .DS_Store
 __pycache__
+/coda/migrations/
