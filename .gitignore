@@ -2,3 +2,5 @@
 db.sqlite3
 wsgi.py
 xv
+.DS_Store
+__pycache__
