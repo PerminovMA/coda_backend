@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
-from .models import Log, AmoUser
+from .models import Log, AmoUser, AmoLead
 
 
 def index(request):
@@ -19,25 +19,31 @@ def add_new_acc_to_coda(request):
                     "account[id]": "28584955",
                     "account[subdomain]": "watchrussians"}
 
-    amo_user_id = request.POST.get("leads[status][0][id]")
+    amo_lead_id = request.POST.get("leads[status][0][id]")
     amo_account_id = request.POST.get("account[id]")
-    amo_user_status_id = request.POST.get("leads[status][0][status_id]")
+    amo_lead_status_id = request.POST.get("leads[status][0][status_id]")
 
-    if amo_user_id and amo_account_id:
-        if amo_user_status_id:
-            amo_user, created = AmoUser.objects.get_or_create(amo_user_id=amo_user_id, amo_account_id=amo_account_id, amo_status_id=amo_user_status_id)
+    # TEMP CODE ##### TODO
+    amo_user = AmoUser.objects.last()
+    if not amo_user:
+        amo_user = AmoUser.objects.create(amo_user_id='1')
+    #######
+
+    if amo_lead_id and amo_account_id:
+        if amo_lead_status_id:
+            amo_lead, created = AmoLead.objects.get_or_create(amo_user=amo_user, amo_lead_id=amo_lead_id, amo_account_id=amo_account_id, amo_status_id=amo_lead_status_id)
         else:
-            amo_user, created = AmoUser.objects.get_or_create(amo_user_id=amo_user_id, amo_account_id=amo_account_id)
+            amo_lead, created = AmoLead.objects.get_or_create(amo_user=amo_user, amo_lead_id=amo_lead_id, amo_account_id=amo_account_id)
             if created:
                 Log.objects.create(log_type=Log.INFO_TYPE, function_name=add_new_acc_to_coda.__name__,
-                                   text="Info: User created without status id. Amo user id: " + str(amo_user.id))
+                                   text="Info: Lead created without status id. Amo lead id: " + str(amo_lead.id))
 
         if not created:
             log_obj = Log.objects.create(log_type=Log.ERROR_TYPE, function_name=add_new_acc_to_coda.__name__,
-                                         text="Error: AMO user is already exists. User id: " + str(amo_user.id))
-            return HttpResponse("Error: AMO user is already exist. Log id: " + str(log_obj.id))
+                                         text="Error: this AMO lead is already exists. Lead id: " + str(amo_lead.id))
+            return HttpResponse("Error: AMO lead is already exist. Log id: " + str(log_obj.id))
         else:
-            return HttpResponse("User created")
+            return HttpResponse("Lead created")
 
     else:
         log_obj = Log.objects.create(log_type=Log.ERROR_TYPE, function_name=add_new_acc_to_coda.__name__, text="Error: You need provide more data. Provided data: " + json.dumps(request.POST))

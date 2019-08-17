@@ -18,17 +18,22 @@ class Log(models.Model):
         return self.text
 
 
-class AmoUser(models.Model):
-    amo_user_id = models.CharField(max_length=100, blank=False, null=False)
+class AmoLead(models.Model):
+    amo_user = models.ForeignKey('AmoUser', on_delete=models.CASCADE)
+    amo_lead_id = models.CharField(max_length=100, blank=False, null=False)
     amo_account_id = models.CharField(max_length=100, blank=False, null=False)
     amo_status_id = models.CharField(max_length=100, blank=True, null=True)
     add_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = [['amo_user_id', 'amo_account_id']]
+        unique_together = [['amo_lead_id', 'amo_account_id']]
+
+    def __str__(self):
+        return self.amo_lead_id
+
+
+class AmoUser(models.Model):
+    amo_user_id = models.CharField(max_length=100, blank=False, null=False)
 
     def __str__(self):
         return self.amo_user_id
-
-
-
