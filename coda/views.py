@@ -14,7 +14,7 @@ def index(request):
 
 @csrf_exempt
 def add_new_acc_to_coda(request):
-    # request.POST = {"leads[status][0][id]": "4016987",
+    # request.POST = {"leads[status][0][id]": "4016925",
     #                 "leads[status][0][status_id]": "29269078",
     #                 "leads[status][0][pipeline_id]": "1967815",
     #                 "leads[status][0][old_status_id]": "29269075",
@@ -134,6 +134,10 @@ def add_new_acc_to_coda(request):
 
             amo_lead.sold = True
             amo_lead.save()
+
+            Log.objects.create(log_type=Log.INFO_TYPE, function_name=add_new_acc_to_coda.__name__,
+                                         text="All done! AmoUser.id is {}".format(amo_user.id))
+
             return HttpResponse("Everything OK!")
 
         else:
