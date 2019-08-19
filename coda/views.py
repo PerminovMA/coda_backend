@@ -1,10 +1,11 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
 import json
 from .models import Log, AmoUser, AmoLead
 from .amo_utility import amo_auth, get_amo_contact_id_by_lead_id, get_amo_contact_info_by_id
 from django.conf import settings
+from .coda_utility import coda_get_formula, coda_add_new_go_acc, coda_add_new_payout, coda_add_new_lead
+import datetime
 
 
 def index(request):
@@ -13,12 +14,12 @@ def index(request):
 
 @csrf_exempt
 def add_new_acc_to_coda(request):
-    request.POST = {"leads[status][0][id]": "4016739",
-                    "leads[status][0][status_id]": "29269078",
-                    "leads[status][0][pipeline_id]": "1967815",
-                    "leads[status][0][old_status_id]": "29269075",
-                    "leads[status][0][old_pipeline_id]": "1967815",
-                    "account[subdomain]": "watchrussians"}
+    # request.POST = {"leads[status][0][id]": "4016987",
+    #                 "leads[status][0][status_id]": "29269078",
+    #                 "leads[status][0][pipeline_id]": "1967815",
+    #                 "leads[status][0][old_status_id]": "29269075",
+    #                 "leads[status][0][old_pipeline_id]": "1967815",
+    #                 "account[subdomain]": "watchrussians"}
 
     amo_lead_id = request.POST.get("leads[status][0][id]")
     amo_lead_status_id = request.POST.get("leads[status][0][status_id]")
@@ -54,7 +55,7 @@ def add_new_acc_to_coda(request):
             return HttpResponse("Error: Cant auth in AMO. Log_id: " + str(log_obj.id))
         # END: Get data from AMO
 
-        # Create AMO Lead
+        # BEGIN: Create AmoLead
         if amo_lead_status_id:
             amo_lead, created = AmoLead.objects.get_or_create(amo_user=amo_user, amo_lead_id=amo_lead_id,
                                                               amo_status_id=amo_lead_status_id)
@@ -64,12 +65,82 @@ def add_new_acc_to_coda(request):
                 Log.objects.create(log_type=Log.INFO_TYPE, function_name=add_new_acc_to_coda.__name__,
                                    text="Info: Lead created without status id. Amo lead id: " + str(amo_lead.id))
 
-        if not created:
+        if not created and amo_lead.sold:
             log_obj = Log.objects.create(log_type=Log.ERROR_TYPE, function_name=add_new_acc_to_coda.__name__,
-                                         text="Error: this AMO lead is already exists. Lead id: " + str(amo_lead.id))
-            return HttpResponse("Error: AMO lead is already exist. Log id: " + str(log_obj.id))
+                                         text="Error: this AMO lead is already exists and Sold. Lead id: " + str(
+                                             amo_lead.id))
+            return HttpResponse("Error: AMO lead is already exist and Sold. Log id: " + str(log_obj.id))
+        # END: Create AmoLead
+
+        # BEGIN: Send data to coda
+        last_go_acc_id = coda_get_formula(settings.CODA_API_KEY, settings.CODA_DOC_ID,
+                                          settings.CODA_LAST_GO_ACC_FORMULA_ID)
+
+        if last_go_acc_id:  # Last go account number received
+            new_go_acc_id = 'GO' + str(int(last_go_acc_id) + 1)
+
+            req_result = coda_add_new_go_acc(acc_id=new_go_acc_id,
+                                             acc_status='Подготовка',
+                                             username=amo_user.name,
+                                             fb_login=amo_user.fb_login,
+                                             fb_pass=amo_user.fb_password,
+                                             acc_type='GO',
+                                             cc_num=amo_user.cc_number,
+                                             acc_comment='Добавлен из AMOCRM',
+                                             rent_start_date=datetime.datetime.now().strftime("%d/%m/%Y")
+                                             )
+            if req_result != 202:  # Error
+                log_obj = Log.objects.create(log_type=Log.ERROR_TYPE, function_name=add_new_acc_to_coda.__name__,
+                                             text="Error: Cant create new GO acc in coda. AmoUser.id is {}".format(
+                                                 amo_user.id))
+                return HttpResponse("Error: Cant create new GO acc in coda. Log id: " + str(log_obj.id))
+
+            req_result = coda_add_new_lead(fb_login=amo_user.fb_login,
+                                           fb_pass=amo_user.fb_password,
+                                           fb_link=amo_user.facebook_link,
+                                           acc_number=new_go_acc_id,
+                                           username=amo_user.name,
+                                           lead_contact="tg: {}".format(amo_user.telegram_username),
+                                           lead_status='Победа',
+                                           lead_comment='Заявка из АМО',
+                                           cc_number=amo_user.cc_number,
+                                           ref=amo_user.ref_id if amo_user.ref_id else ''
+                                           )
+
+            if req_result != 202:  # Error
+                log_obj = Log.objects.create(log_type=Log.ERROR_TYPE, function_name=add_new_acc_to_coda.__name__,
+                                             text="Error: Cant create new Lead in coda. AmoUser.id is {}".format(
+                                                 amo_user.id))
+                return HttpResponse("Error: Cant create new Lead in coda. Log id: " + str(log_obj.id))
+
+            # if everything ok, create payout request
+            if amo_user.ref_id:
+                req_result1 = coda_add_new_payout(new_go_acc_id, 10, 'Аванс за аренду', comment='Заявка из АМО', ref_id='')
+                req_result2 = coda_add_new_payout(amo_user.ref_id, 10, 'Бонус за реферала', comment='Заявка из АМО', ref_id=new_go_acc_id)
+
+                if req_result1 != 202 or req_result2 != 202:
+                    log_obj = Log.objects.create(log_type=Log.ERROR_TYPE, function_name=add_new_acc_to_coda.__name__,
+                                                 text="Error: Cant create new payout req AmoUser.id is {}".format(
+                                                     amo_user.id))
+                    return HttpResponse("Error: Cant create new payout req. Log id: {}".format(log_obj.id))
+            else:
+                req_result = coda_add_new_payout(new_go_acc_id, 10, 'Аванс за аренду', comment='Заявка из АМО', ref_id='')
+
+                if req_result != 202:
+                    log_obj = Log.objects.create(log_type=Log.ERROR_TYPE, function_name=add_new_acc_to_coda.__name__,
+                                                 text="Error: Cant create new payout req AmoUser.id is {}".format(
+                                                     amo_user.id))
+                    return HttpResponse("Error: Cant create new payout req. Log id: {}".format(log_obj.id))
+
+            amo_lead.sold = True
+            amo_lead.save()
+            return HttpResponse("Everything OK!")
+
         else:
-            return HttpResponse("Lead created")
+            log_obj = Log.objects.create(log_type=Log.ERROR_TYPE, function_name=add_new_acc_to_coda.__name__,
+                                         text="Cant get last go account number.")
+            return HttpResponse("Error: Cant get last go account number. Log id: " + str(log_obj.id))
+        # END: Send data to coda
 
     else:
         log_obj = Log.objects.create(log_type=Log.ERROR_TYPE, function_name=add_new_acc_to_coda.__name__,
