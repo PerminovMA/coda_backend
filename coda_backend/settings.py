@@ -25,7 +25,7 @@ SECRET_KEY = '&o2rb@g#s)5g&-!4@u2q7tll0%8(ptk@56h(a=ei6jl**8@^ob'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['165.22.197.227', 'codabackend.space', '127.0.0.1']
+ALLOWED_HOSTS = ['165.22.197.227', 'codabackend.space', '127.0.0.1', '167.71.74.70']
 
 
 # Application definition
