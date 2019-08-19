@@ -1,46 +1,9 @@
 import requests
-import datetime
-
-# TEMP BLOCK # TODO
-
 from django.conf import settings
 
-settings.configure()
-settings.CODA_API_KEY = "ec2db341-09e3-4e4f-9252-a62388dd6095"
-settings.CODA_DOC_ID = "IuphEtBZK-"
-settings.CODA_API_URL = "https://coda.io/apis/v1beta1"
-settings.CODA_ALL_ACCOUNTS_TABLE_ID = "grid-av2Ob-DeZY"
-settings.CODA_PAYOUT_TABLE_ID = "grid-Bz-2Sjgr1T"
-settings.CODA_LEADS_TABLE_ID = "grid-roUTZPp95C"  # таблица с заявками
-settings.CODA_LAST_GO_ACCOUNT_FORMULA_ID = 'f-ZOCLuICyTr'
-
-CODA_ALL_ACCOUNTS_COLUMN_ID = {  # Matching coda column names and column ids
-    'Номер аккаунта': 'c-RvB-WgUOno',
-    'Статус аккаунта': 'c-dSp_SI1Mwh',
-    'Login': 'c-F-7VgB7kmw',
-    'Password': 'c-LwRIc0U-YR',
-    'Тип аккаунта': 'c-AKh7JJmaIb',
-    'Номер карты': 'c-tS9cJOGC2a',
-    'Name': 'c-fXN-y591bK',
-    'Комментарий': 'c-cMb-K_wjMP',
-    'Заявка': 'c-ZnVtxZ_4yj',  # ref to leads table
-    'Дата передачи в аренду': 'c-u7AH-f6Fl3',
-}
-
-CODA_LEADS_COLUMN_ID = {  # Matching coda column names and column ids
-    'Name': 'c-Lnmya8GCpa',
-    'Login': 'c-1lkzoPM4RP',
-    'Password': 'c-S3UiIV4mSf',
-    'Status': 'c-U0KLApVjKx',
-    'Комментарий': 'c-n6LsyDxvNs',
-    'Номер аккаунта': 'c-mMQziDLpkv',  # ref to accounts table
-    'Карта человека': 'c-1-9kcMwgUK',
-    'Реферер': 'c-YabKOSp_qk',  # ref to other lead
-    'Контакт для связи': 'c-qeV8SKjjRK',
-    'Ссылка на профиль': 'c-6cen9HGTW1',
-}
-##
-
+CODA_ALL_ACCOUNTS_COLUMN_ID = settings.CODA_ALL_ACCOUNTS_COLUMN_ID
+CODA_LEADS_COLUMN_ID = settings.CODA_LEADS_COLUMN_ID
+CODA_PAYOUT_COLUMN_ID = settings.CODA_PAYOUT_COLUMN_ID
 CODA_API_URL = settings.CODA_API_URL
 
 
@@ -105,12 +68,17 @@ def coda_insert_row(coda_api_token, coda_doc_id, coda_table_id, payload_list):
             },
         ],
     }
+
+    for d in payload_list:
+        if d.get('value') is None:
+            d['value'] = ''
+
     req = requests.post(uri, headers=headers, json=payload)
     req.raise_for_status()  # Throw if there was an error.
-    return req.json()
+    return req.status_code
 
 
-def coda_add_new_go_acc(acc_id, acc_status, fb_login, fb_pass, username='', acc_type='GO', cc_num='', acc_comment='',
+def coda_add_new_go_acc(acc_id, acc_status, fb_login='', fb_pass='', username='', acc_type='GO', cc_num='', acc_comment='',
                         rent_start_date=''):
     payload_list = [
         {'column': CODA_ALL_ACCOUNTS_COLUMN_ID['Номер аккаунта'], 'value': acc_id},
@@ -128,7 +96,7 @@ def coda_add_new_go_acc(acc_id, acc_status, fb_login, fb_pass, username='', acc_
                            payload_list)
 
 
-def coda_add_new_lead(fb_login, fb_pass, fb_link='', acc_number='', username='', lead_contact='', lead_status='Победа',
+def coda_add_new_lead(fb_login='', fb_pass='', fb_link='', acc_number='', username='', lead_contact='', lead_status='Победа',
                       lead_comment='', cc_number='', ref=''):
     payload_list = [
         {'column': CODA_LEADS_COLUMN_ID['Name'], 'value': username},
@@ -147,33 +115,45 @@ def coda_add_new_lead(fb_login, fb_pass, fb_link='', acc_number='', username='',
                            payload_list)
 
 
-# print(coda_get_column_list(settings.CODA_API_KEY, settings.CODA_DOC_ID, settings.CODA_LEADS_TABLE_ID))
-# print(coda_list_formulas(settings.CODA_API_KEY, settings.CODA_DOC_ID))
-# print(coda_get_formula(settings.CODA_API_KEY, settings.CODA_DOC_ID, settings.CODA_LAST_GO_ACCOUNT_FORMULA_ID))
-# print(coda_insert_row(settings.CODA_API_KEY, settings.CODA_DOC_ID, settings.CODA_ALL_ACCOUNTS_TABLE_ID))
+def coda_add_new_payout(lead_id, value, purpose, status='Ожидание', comment='', ref_id=''):
+    payload_list = [
+        {'column': CODA_PAYOUT_COLUMN_ID['Клиент'], 'value': lead_id},
+        {'column': CODA_PAYOUT_COLUMN_ID['Сумма'], 'value': value},
+        {'column': CODA_PAYOUT_COLUMN_ID['Статус'], 'value': status},
+        {'column': CODA_PAYOUT_COLUMN_ID['Назначение'], 'value': purpose},
+        {'column': CODA_PAYOUT_COLUMN_ID['Комментарий'], 'value': comment},
+        {'column': CODA_PAYOUT_COLUMN_ID['Реферал'], 'value': ref_id},
+    ]
 
-last_go_acc_id = coda_get_formula(settings.CODA_API_KEY, settings.CODA_DOC_ID, settings.CODA_LAST_GO_ACCOUNT_FORMULA_ID)
-new_go_acc_id = 'GO' + str(int(last_go_acc_id) + 1)
+    return coda_insert_row(settings.CODA_API_KEY, settings.CODA_DOC_ID, settings.CODA_PAYOUT_TABLE_ID,
+                           payload_list)
 
-print(coda_add_new_go_acc(acc_id=new_go_acc_id,
-                          acc_status='Подготовка',
-                          username='My Name',
-                          fb_login='My Login',
-                          fb_pass='My Password',
-                          acc_type='GO',
-                          cc_num='123',
-                          acc_comment='Добавлен из AMOCRM',
-                          rent_start_date=datetime.datetime.now().strftime("%d/%m/%Y")
-                          ))
 
-print(coda_add_new_lead(fb_login='My login',
-                        fb_pass='My pass',
-                        fb_link='My fb link',
-                        acc_number=new_go_acc_id,
-                        username='My username',
-                        lead_contact='My lead contact',
-                        lead_status='Победа',
-                        lead_comment='Заявка из АМО',
-                        cc_number='12345',
-                        ref='My referer'
-                        ))
+# last_go_acc_id = coda_get_formula(settings.CODA_API_KEY, settings.CODA_DOC_ID, settings.CODA_LAST_GO_ACC_FORMULA_ID)
+#
+# new_go_acc_id = 'GO' + str(int(last_go_acc_id) + 1)
+#
+# print(coda_add_new_go_acc(acc_id=new_go_acc_id,
+#                           acc_status='Подготовка',
+#                           username='My Name',
+#                           fb_login='My Login',
+#                           fb_pass='My Password',
+#                           acc_type='GO',
+#                           cc_num='123',
+#                           acc_comment='Добавлен из AMOCRM',
+#                           rent_start_date=datetime.datetime.now().strftime("%d/%m/%Y")
+#                           ))
+#
+# print(coda_add_new_lead(fb_login='My login',
+#                         fb_pass='My pass',
+#                         fb_link='My fb link',
+#                         acc_number=new_go_acc_id,
+#                         username='My username',
+#                         lead_contact='My lead contact',
+#                         lead_status='Победа',
+#                         lead_comment='Заявка из АМО',
+#                         cc_number='12345',
+#                         ref='My referer'
+#                         ))
+#
+# print(coda_add_new_payout(new_go_acc_id, 10, 'Аванс за аренду', comment='Заявка из АМО', ref_id='TEST'))
