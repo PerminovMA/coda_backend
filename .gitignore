@@ -6,3 +6,4 @@ xv
 __pycache__
 /coda/migrations/
 static_files
+/coda_backend/local_settings.py

@@ -120,3 +120,6 @@ USE_TZ = True
 
 STATIC_ROOT = BASE_DIR + "/static_files"
 STATIC_URL = '/static/'
+
+# IMPORT AMO SETTINGS from local file 'local_settings (must be created).
+from .local_settings import AMO_USER_LOGIN, AMO_USER_HASH, AMO_URL
