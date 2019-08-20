@@ -72,19 +72,19 @@ def add_new_acc_to_coda(request):
             return HttpResponse("Error: AMO lead is already exist and Sold. Log id: " + str(log_obj.id))
         # END: Create AmoLead
 
-        # BEGIN: Send data to coda
+        # BEGIN: Working with coda
         last_go_acc_id = coda_get_formula(settings.CODA_API_KEY, settings.CODA_DOC_ID,
                                           settings.CODA_LAST_GO_ACC_FORMULA_ID)  # get max go account index from coda
 
-        # If max local acc index more than received index use local acc index + 1
-        last_created_fb_acc = FBAccount.objects.last()
-        if last_created_fb_acc and int(last_created_fb_acc.get_acc_index_number) > int(last_go_acc_id):
-            last_go_acc_id = last_created_fb_acc.get_acc_index_number
-            Log.objects.create(log_type=Log.WARNING_TYPE, function_name=add_new_acc_to_coda.__name__,
-                               text="Warning: Received max go acc index from amo not relevant. Set index: {}".format(
-                                   int(last_go_acc_id) + 1))
-
         if last_go_acc_id:  # Last go account number received
+            # If max local acc index more than received index use local acc index + 1
+            last_created_fb_acc = FBAccount.objects.last()
+            if last_created_fb_acc and int(last_created_fb_acc.get_acc_index_number) > int(last_go_acc_id):
+                last_go_acc_id = last_created_fb_acc.get_acc_index_number
+                Log.objects.create(log_type=Log.WARNING_TYPE, function_name=add_new_acc_to_coda.__name__,
+                                   text="Warning: Received max go acc index from amo not relevant. Set index: {}".format(
+                                       int(last_go_acc_id) + 1))
+
             new_go_acc_id = FBAccount.GO_TYPE + str(int(last_go_acc_id) + 1)
 
             req_result = coda_add_new_go_acc(acc_id=new_go_acc_id,
