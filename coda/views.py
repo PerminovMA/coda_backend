@@ -86,6 +86,7 @@ def add_new_acc_to_coda(request):
                                        int(last_go_acc_id) + 1))
 
             new_go_acc_id = FBAccount.GO_TYPE + str(int(last_go_acc_id) + 1)
+            FBAccount.objects.create(amo_lead=amo_lead, acc_name=new_go_acc_id, acc_type=FBAccount.GO_TYPE)
 
             req_result = coda_add_new_go_acc(acc_id=new_go_acc_id,
                                              acc_status='Подготовка',
@@ -102,7 +103,6 @@ def add_new_acc_to_coda(request):
                                              text="Error: Cant create new GO acc in coda. AmoUser.id is {}".format(
                                                  amo_user.id))
                 return HttpResponse("Error: Cant create new GO acc in coda. Log id: " + str(log_obj.id))
-            FBAccount.objects.create(amo_lead=amo_lead, acc_name=new_go_acc_id, acc_type=FBAccount.GO_TYPE)
 
             req_result = coda_add_new_lead(fb_login=amo_user.fb_login,
                                            fb_pass=amo_user.fb_password,
