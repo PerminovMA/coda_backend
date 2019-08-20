@@ -2,20 +2,40 @@ from django.db import models
 
 
 class Log(models.Model):
+    WARNING_TYPE = 'WARNING'
     ERROR_TYPE = 'ERROR'
     INFO_TYPE = 'LOG'
     LOG_TYPE_CHOICES = [
         (ERROR_TYPE, 'Error'),
         (INFO_TYPE, 'Log'),
+        (WARNING_TYPE, 'Warning'),
     ]
 
-    log_type = models.CharField(max_length=5, choices=LOG_TYPE_CHOICES, default=ERROR_TYPE)
+    log_type = models.CharField(max_length=6, choices=LOG_TYPE_CHOICES, default=ERROR_TYPE)
     function_name = models.CharField(max_length=200, blank=False, null=True)
     text = models.TextField()
     pub_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.text
+
+
+class FBAccount(models.Model):
+    GO_TYPE = 'GO'
+    ACC_TYPES = [
+        (GO_TYPE, 'GO'),
+    ]
+
+    amo_lead = models.ForeignKey('AmoLead', on_delete=models.CASCADE)
+    acc_name = models.CharField(max_length=20, blank=False, null=False, unique=True)
+    acc_type = models.CharField(max_length=20, choices=ACC_TYPES, default=GO_TYPE)
+    add_date = models.DateTimeField(auto_now_add=True)
+
+    def get_acc_index_number(self):
+        return self.acc_name.replace(self.acc_type, '')
+
+    def __str__(self):
+        return self.acc_name
 
 
 class AmoLead(models.Model):
