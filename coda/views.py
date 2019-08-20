@@ -80,7 +80,7 @@ def add_new_acc_to_coda(request):
             # If max local acc index more than received index use local acc index + 1
             last_created_fb_acc = FBAccount.objects.last()
             if last_created_fb_acc and int(last_created_fb_acc.get_acc_index_number) > int(last_go_acc_id):
-                last_go_acc_id = last_created_fb_acc.get_acc_index_number
+                last_go_acc_id = last_created_fb_acc.get_acc_index_number()
                 Log.objects.create(log_type=Log.WARNING_TYPE, function_name=add_new_acc_to_coda.__name__,
                                    text="Warning: Received max go acc index from amo not relevant. Set index: {}".format(
                                        int(last_go_acc_id) + 1))
