@@ -129,33 +129,3 @@ def coda_add_new_payout(lead_id, value, purpose, status='Ожидание', comm
 
     return coda_insert_row(settings.CODA_API_KEY, settings.CODA_DOC_ID, settings.CODA_PAYOUT_TABLE_ID,
                            payload_list)
-
-
-# last_go_acc_id = coda_get_formula(settings.CODA_API_KEY, settings.CODA_DOC_ID, settings.CODA_LAST_GO_ACC_FORMULA_ID)
-#
-# new_go_acc_id = 'GO' + str(int(last_go_acc_id) + 1)
-#
-# print(coda_add_new_go_acc(acc_id=new_go_acc_id,
-#                           acc_status='Подготовка',
-#                           username='My Name',
-#                           fb_login='My Login',
-#                           fb_pass='My Password',
-#                           acc_type='GO',
-#                           cc_num='123',
-#                           acc_comment='Добавлен из AMOCRM',
-#                           rent_start_date=datetime.datetime.now().strftime("%d/%m/%Y")
-#                           ))
-#
-# print(coda_add_new_lead(fb_login='My login',
-#                         fb_pass='My pass',
-#                         fb_link='My fb link',
-#                         acc_number=new_go_acc_id,
-#                         username='My username',
-#                         lead_contact='My lead contact',
-#                         lead_status='Победа',
-#                         lead_comment='Заявка из АМО',
-#                         cc_number='12345',
-#                         ref='My referer'
-#                         ))
-#
-# print(coda_add_new_payout(new_go_acc_id, 10, 'Аванс за аренду', comment='Заявка из АМО', ref_id='TEST'))

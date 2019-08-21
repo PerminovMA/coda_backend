@@ -14,12 +14,12 @@ def index(request):
 
 @csrf_exempt
 def add_new_acc_to_coda(request):
-    request.POST = {"leads[status][0][id]": "4365479",
-                    "leads[status][0][status_id]": "29269078",
-                    "leads[status][0][pipeline_id]": "1967815",
-                    "leads[status][0][old_status_id]": "29269075",
-                    "leads[status][0][old_pipeline_id]": "1967815",
-                    "account[subdomain]": "watchrussians"}
+    # request.POST = {"leads[status][0][id]": "4365479",
+    #                 "leads[status][0][status_id]": "29269078",
+    #                 "leads[status][0][pipeline_id]": "1967815",
+    #                 "leads[status][0][old_status_id]": "29269075",
+    #                 "leads[status][0][old_pipeline_id]": "1967815",
+    #                 "account[subdomain]": "watchrussians"}
 
     amo_lead_id = request.POST.get("leads[status][0][id]")
     amo_lead_status_id = request.POST.get("leads[status][0][status_id]")
