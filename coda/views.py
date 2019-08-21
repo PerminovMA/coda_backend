@@ -14,12 +14,12 @@ def index(request):
 
 @csrf_exempt
 def add_new_acc_to_coda(request):
-    # request.POST = {"leads[status][0][id]": "4244005",
-    #                 "leads[status][0][status_id]": "29269078",
-    #                 "leads[status][0][pipeline_id]": "1967815",
-    #                 "leads[status][0][old_status_id]": "29269075",
-    #                 "leads[status][0][old_pipeline_id]": "1967815",
-    #                 "account[subdomain]": "watchrussians"}
+    request.POST = {"leads[status][0][id]": "4365479",
+                    "leads[status][0][status_id]": "29269078",
+                    "leads[status][0][pipeline_id]": "1967815",
+                    "leads[status][0][old_status_id]": "29269075",
+                    "leads[status][0][old_pipeline_id]": "1967815",
+                    "account[subdomain]": "watchrussians"}
 
     amo_lead_id = request.POST.get("leads[status][0][id]")
     amo_lead_status_id = request.POST.get("leads[status][0][status_id]")
@@ -96,7 +96,9 @@ def add_new_acc_to_coda(request):
                                              acc_type=FBAccount.GO_TYPE,
                                              cc_num=amo_user.cc_number,
                                              acc_comment='Добавлен из AMOCRM',
-                                             rent_start_date=datetime.datetime.now().strftime("%d/%m/%Y")
+                                             rent_start_date=datetime.datetime.now().strftime("%d/%m/%Y"),
+                                             amo_contact_id=amo_contact_id,
+                                             amo_lead_id=amo_lead_id
                                              )
             if req_result != 202:  # Error
                 log_obj = Log.objects.create(log_type=Log.ERROR_TYPE, function_name=add_new_acc_to_coda.__name__,
@@ -156,7 +158,7 @@ def add_new_acc_to_coda(request):
             log_obj = Log.objects.create(log_type=Log.ERROR_TYPE, function_name=add_new_acc_to_coda.__name__,
                                          text="Cant get last go account number.")
             return HttpResponse("Error: Cant get last go account number. Log id: " + str(log_obj.id))
-        # END: Send data to coda
+        # END: Working with coda
 
     else:
         log_obj = Log.objects.create(log_type=Log.ERROR_TYPE, function_name=add_new_acc_to_coda.__name__,
