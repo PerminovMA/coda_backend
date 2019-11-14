@@ -79,7 +79,8 @@ def coda_insert_row(coda_api_token, coda_doc_id, coda_table_id, payload_list):
 
 
 def coda_add_new_go_acc(acc_id, acc_status, fb_login='', fb_pass='', username='', acc_type='GO', cc_num='', acc_comment='',
-                        rent_start_date='', amo_lead_id='', amo_contact_id=''):
+                        rent_start_date='', amo_lead_id='', amo_contact_id='', acc_wall_raws='', acc_age='',
+                        acc_friends_quantity='', acc_chat_activity=''):
     payload_list = [
         {'column': CODA_ALL_ACCOUNTS_COLUMN_ID['Номер аккаунта'], 'value': acc_id},
         {'column': CODA_ALL_ACCOUNTS_COLUMN_ID['Статус аккаунта'], 'value': acc_status},
@@ -92,6 +93,10 @@ def coda_add_new_go_acc(acc_id, acc_status, fb_login='', fb_pass='', username=''
         {'column': CODA_ALL_ACCOUNTS_COLUMN_ID['Дата передачи в аренду'], 'value': rent_start_date},
         {'column': CODA_ALL_ACCOUNTS_COLUMN_ID['Сделка в AMO'], 'value': amo_lead_id},
         {'column': CODA_ALL_ACCOUNTS_COLUMN_ID['Контакт в AMO'], 'value': amo_contact_id},
+        {'column': CODA_ALL_ACCOUNTS_COLUMN_ID['Кол-во записей на стене'], 'value': acc_wall_raws},
+        {'column': CODA_ALL_ACCOUNTS_COLUMN_ID['Возраст аккаунта'], 'value': acc_age},
+        {'column': CODA_ALL_ACCOUNTS_COLUMN_ID['Кол-во друзей'], 'value': acc_friends_quantity},
+        {'column': CODA_ALL_ACCOUNTS_COLUMN_ID['Активность переписки'], 'value': acc_chat_activity},
     ]
 
     return coda_insert_row(settings.CODA_API_KEY, settings.CODA_DOC_ID, settings.CODA_ALL_ACCOUNTS_TABLE_ID,

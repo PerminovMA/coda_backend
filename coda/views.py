@@ -88,6 +88,7 @@ def add_new_acc_to_coda(request):
             new_go_acc_id = FBAccount.GO_TYPE + str(int(last_go_acc_id) + 1)
             FBAccount.objects.create(amo_lead=amo_lead, acc_name=new_go_acc_id, acc_type=FBAccount.GO_TYPE)
 
+            data_fields = amo_contact_data_or_error if isinstance(amo_contact_data_or_error, dict) else {}
             req_result = coda_add_new_go_acc(acc_id=new_go_acc_id,
                                              acc_status='Подготовка',
                                              username=amo_user.name,
@@ -98,7 +99,11 @@ def add_new_acc_to_coda(request):
                                              acc_comment='Добавлен из AMOCRM',
                                              rent_start_date=datetime.datetime.now().strftime("%d/%m/%Y"),
                                              amo_contact_id=amo_contact_id,
-                                             amo_lead_id=amo_lead_id
+                                             amo_lead_id=amo_lead_id,
+                                             acc_wall_raws=data_fields.get('acc_wall_raws', ''),
+                                             acc_age=data_fields.get('acc_age', ''),
+                                             acc_friends_quantity=data_fields.get('acc_friends_quantity', ''),
+                                             acc_chat_activity=data_fields.get('acc_chat_activity', ''),
                                              )
             if req_result != 202:  # Error
                 log_obj = Log.objects.create(log_type=Log.ERROR_TYPE, function_name=add_new_acc_to_coda.__name__,

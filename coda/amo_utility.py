@@ -71,6 +71,10 @@ def get_amo_contact_info_by_id(amo_contact_id, amo_domain, session_key):
         "cc_number": get_field_by_name_from_custom_fields('Номер карты', custom_fields),
         "fb_login": get_field_by_name_from_custom_fields('Логин Facebook', custom_fields),
         "fb_password": get_field_by_name_from_custom_fields('Пароль Facebook', custom_fields),
+        "acc_wall_raws": get_field_by_name_from_custom_fields('Q: Записей на стене', custom_fields),
+        "acc_age": get_field_by_name_from_custom_fields('Q: Возраст аккаунта лет', custom_fields),
+        "acc_friends_quantity": get_field_by_name_from_custom_fields('Q: Друзей', custom_fields),
+        "acc_chat_activity": get_field_by_name_from_custom_fields('Q: Активность переписки', custom_fields),
     }
 
     return True, useful_data
