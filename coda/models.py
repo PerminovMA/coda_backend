@@ -68,6 +68,10 @@ class AmoUser(models.Model):
     cc_number = models.CharField(max_length=50, blank=True, null=True, default=None)
     fb_login = models.CharField(max_length=255, blank=True, null=True, default=None)
     fb_password = models.CharField(max_length=255, blank=True, null=True, default=None)
+    acc_wall_raws = models.CharField(max_length=50, blank=True, null=True, default=None)
+    acc_age = models.CharField(max_length=50, blank=True, null=True, default=None)
+    acc_friends_quantity = models.CharField(max_length=50, blank=True, null=True, default=None)
+    acc_chat_activity = models.CharField(max_length=50, blank=True, null=True, default=None)
 
     def __str__(self):
         return "{} id: {}".format(self.name, self.amo_user_id)
